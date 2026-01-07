@@ -93,7 +93,6 @@ La aplicación sigue una arquitectura moderna de tres capas:
 - **Uvicorn** - Servidor ASGI
 
 ### DevOps
-- **Docker & Docker Compose** - Containerización
 - **Nginx** - Servidor web para producción
 - **Git** - Control de versiones
 
@@ -102,17 +101,16 @@ La aplicación sigue una arquitectura moderna de tres capas:
 - **Node.js** 18+ y npm
 - **Python** 3.11+
 - **OpenAI API Key** ([Obtener aquí](https://platform.openai.com/api-keys))
-- **Docker** (opcional, para deployment con contenedores)
 
 ##  Instalación
 
-### Opción 1: Instalación Local (Desarrollo)
+### Instalación Local (Desarrollo)
 
 #### 1. Clonar el repositorio
 
 ```bash
 git clone https://github.com/hehsebas/Prompt-enhancer.git
-cd prompt-optimizer
+cd "nombredelacarpeta"
 ```
 
 #### 2. Configurar el Backend
@@ -124,16 +122,14 @@ cd backend
 python -m venv venv
 
 # Activar entorno virtual
-# En Windows:
 venv\Scripts\activate
-# En Linux/Mac:
-source venv/bin/activate
 
 # Instalar dependencias
 pip install -r requirements.txt
 
 # Configurar variables de entorno
 copy .env.example .env
+
 # Editar .env y agregar tu OPENAI_API_KEY=sq........
 ```
 
@@ -147,7 +143,6 @@ npm install
 
 # Configurar variables de entorno
 copy .env.example .env
-# Editar .env si es necesario (por defecto apunta a localhost:8000)
 ```
 
 #### 4. Ejecutar la aplicación
@@ -169,21 +164,6 @@ La aplicación estará disponible en:
 - **Frontend**: http://localhost:3000
 - **Backend API**: http://localhost:8000
 - **Documentación API**: http://localhost:8000/docs
-
-### Opción 2: Docker Compose (Producción)
-
-```bash
-# 1. Configurar variables de entorno
-copy .env.example .env
-# Editar .env y agregar tu OPENAI_API_KEY
-
-# 2. Construir y ejecutar contenedores
-docker-compose up --build
-
-# La aplicación estará disponible en:
-# Frontend: http://localhost:3000
-# Backend: http://localhost:8000
-```
 
 ## Uso
 
@@ -253,7 +233,7 @@ Para agregar más modelos, edita:
 1. `backend/app/main.py` - Agregar costos y validación
 2. `frontend/src/App.jsx` - Agregar opción en el selector
 
-## 🧪 Testing
+## Testing
 
 ### Backend
 ```bash
@@ -272,9 +252,9 @@ npm run test
 ¡Las contribuciones son bienvenidas! Por favor:
 
 1. Fork el proyecto
-2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
-3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
-4. Push a la rama (`git push origin feature/AmazingFeature`)
+2. Crea una rama para tu feature (`git checkout -b feature/mejora`)
+3. Commit tus cambios (`git commit -m 'Mejore esto y esto x'`)
+4. Push a la rama (`git push origin feature/mejora`)
 5. Abre un Pull Request
 
 ##  Licencia
