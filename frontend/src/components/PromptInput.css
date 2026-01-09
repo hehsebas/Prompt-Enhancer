@@ -115,6 +115,11 @@
   font-size: 0.8rem;
   border: 1px solid var(--border-color);
 }
+
+.input-hint.hidden {
+  display: none;
+}
+
 .prompt-actions-container {
   display: flex;
   justify-content: space-between;
@@ -270,7 +275,7 @@
   }
 
   .prompt-actions-container {
-    flex-direction: column;
+    flex-direction: flex;
     align-items: stretch;
   }
 
@@ -284,7 +289,7 @@
   }
 
   .btn-primary {
-    width: 100%;
+    width: max-content;
     justify-content: center;
   }
 
@@ -292,6 +297,7 @@
     width: 100%;
     justify-content: center;
   }
+
 }
 
 @media (max-width: 480px) {

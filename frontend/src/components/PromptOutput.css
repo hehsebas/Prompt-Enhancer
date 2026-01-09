@@ -232,7 +232,7 @@
   }
 
   .optimized-prompt {
-    padding: var(--spacing-md);
+    padding: var(--spacing-sm);
     max-height: 300px;
   }
 

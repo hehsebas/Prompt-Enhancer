@@ -70,34 +70,34 @@ function PromptOutput({
             className="explanation-toggle"
             onClick={() => setShowExplanation(!showExplanation)}
           >
-            <span>📚 ¿Qué cambios se hicieron y por qué?</span>
+            <span> ¿Qué cambios se hicieron y por qué?</span>
             {showExplanation ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
           </button>
 
           {showExplanation && (
             <div className="explanation-content">
               <div className="explanation-card">
-                <h4>🎯 Resumen de Cambios</h4>
+                <h4> Resumen de Cambios</h4>
                 <p>{explanation.changes_summary}</p>
               </div>
 
               {explanation.expanded_prompt && (
                 <div className="explanation-card">
-                  <h4>📝 Prompt Expandido</h4>
+                  <h4> Prompt Expandido</h4>
                   <p className="explanation-text">{explanation.expanded_prompt}</p>
                 </div>
               )}
 
               {explanation.decomposition_and_reasoning && (
                 <div className="explanation-card">
-                  <h4>🧩 Descomposición y Razonamiento</h4>
+                  <h4> Descomposición y Razonamiento</h4>
                   <p className="explanation-text">{explanation.decomposition_and_reasoning}</p>
                 </div>
               )}
 
               {explanation.suggested_enhancements && (
                 <div className="explanation-card">
-                  <h4>💡 Mejoras Sugeridas</h4>
+                  <h4>Mejoras Sugeridas</h4>
                   <p className="explanation-text">{explanation.suggested_enhancements}</p>
                 </div>
               )}

@@ -110,7 +110,7 @@ function PromptInput({ value, onChange, onOptimize, isLoading, disabled, selecte
       </div>
       
 
-      <p className="input-hint">
+      <p className="input-hint hidden">
         Presiona <kbd>Ctrl</kbd> + <kbd>Enter</kbd> para optimizar rápidamente
       </p>
     </div>

@@ -84,7 +84,7 @@ function App() {
       <main className="main-content">
         <div className="container" >
           <section className="fade-in"style={{display: 'flex', justifyContent: 'center'}}>
-            <h2>Transforma tu prompt en un prompt optimizado</h2>
+            <h2>Prompt Enhancer</h2>
           </section>
 
 
