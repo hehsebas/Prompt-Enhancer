@@ -14,7 +14,6 @@ if not api_key:
         "OPENAI_API_KEY no encontrada o no valida "
     )
 
-# Configurar cliente de OpenAI
 client = AsyncOpenAI(api_key=api_key)
 
 

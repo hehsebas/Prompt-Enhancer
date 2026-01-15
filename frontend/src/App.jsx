@@ -6,6 +6,8 @@ import ComparisonView from './components/ComparisonView'
 import LoadingSpinner from './components/LoadingSpinner'
 import ErrorMessage from './components/ErrorMessage'
 import { optimizePrompt } from './services/api'
+import Sidebar from './components/Sidebar'
+import { Menu } from 'lucide-react'
 
 function App() {
   const [inputPrompt, setInputPrompt] = useState('')
@@ -16,6 +18,7 @@ function App() {
   const [error, setError] = useState(null)
   const [selectedModel, setSelectedModel] = useState('')
   const [showComparison, setShowComparison] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   const handleOptimize = async () => {
     if (!inputPrompt.trim()) {
@@ -80,14 +83,21 @@ function App() {
 
   return (
     <div className="app">
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)}/>
       
+      <button 
+        className={`sidebar-toggle ${sidebarOpen ? 'hidden' : ''}`}
+        onClick={() => setSidebarOpen(true)}
+        aria-label="Abrir menú"
+      >
+        <Menu size={24} />
+      </button>
+
       <main className="main-content">
-        <div className="container" >
-          <section className="fade-in"style={{display: 'flex', justifyContent: 'center'}}>
-            <h2>Prompt Enhancer</h2>
-          </section>
-
-
+          <div className="title-h1 container center-content">
+            <h1>Transforma tu prompt básico en un prompt avanzado</h1>
+          </div>
+        <div className="container">
           <PromptInput
             value={inputPrompt}
             onChange={setInputPrompt}
@@ -113,7 +123,6 @@ function App() {
                 showingComparison={showComparison}
               />
 
-              {/* Vista de comparación */}
               {showComparison && (
                 <ComparisonView
                   originalPrompt={inputPrompt}

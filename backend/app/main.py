@@ -1,11 +1,21 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, EmailStr
 from typing import Optional, Dict, Any
+from supabase import create_client, Client
 import time
 import os
+from datetime import timedelta
+from dotenv import load_dotenv
+
+
+load_dotenv()
 
 from app.pipeline import PromptEnhancer
+
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 app = FastAPI(
     title="Prompt Optimizer API",
@@ -13,14 +23,14 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Configurar CORS para permitir peticiones desde el frontend React
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Permite todos los orígenes (cambia a tu dominio específico para mayor seguridad)
+    allow_origins=["*"],  # TODO: Cambiar a la URL del frontend
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 
 # Modelos de datos
@@ -37,6 +47,25 @@ class PromptResponse(BaseModel):
     optimized_prompt: str
     explanation: Optional[Dict[str, Any]]
     metadata: Dict[str, Any]
+
+class UserSignUp(BaseModel):
+    """Modelo para registro de usuario"""
+    username: str = Field(..., min_length=3, max_length=50)
+    email: EmailStr
+    password: str = Field(..., min_length=6, description="Contraseña")
+    plan: Optional[str] = Field(default="Free")
+
+class UserLogin(BaseModel):
+    """Modelo para inicio de sesión"""
+    email: EmailStr
+    password: str
+
+class UserResponse(BaseModel):
+    """Modelo para respuesta de usuario"""
+    success: bool
+    message: str
+    user: Optional[Dict[str, Any]] = None
+    token: Optional[str] = None
 
 
 # Endpoints
@@ -64,6 +93,109 @@ async def health_check():
     }
 
 
+@app.post("/auth/signup", response_model=UserResponse)
+async def signup(user_data: UserSignUp):
+    """Registrar un nuevo usuario usando Supabase Auth"""
+    try:
+        auth_response = supabase.auth.sign_up({
+            "email": user_data.email,
+            "password": user_data.password,
+            "options": {
+                "data": {
+                    "username": user_data.username,
+                    "plan": user_data.plan
+                }
+            }
+        })
+        
+        if not auth_response.user:
+            raise HTTPException(
+                status_code=400,
+                detail="Error al registrar el usuario"
+            )
+        
+        try:
+            supabase.table("users").insert({
+                "id": auth_response.user.id,  # Usar el mismo ID de auth.users
+                "username": user_data.username,
+                "email": auth_response.user.email,
+                "plan": user_data.plan
+            }).execute()
+        except Exception as e:
+            print(f"[WARNING] No se pudo insertar en tabla users: {e}")
+
+        access_token = auth_response.session.access_token if auth_response.session else "pending_verification"
+        
+        message = "Usuario registrado exitosamente"
+        if not auth_response.session:
+            message += ". Por favor verifica tu email para activar tu cuenta"
+        
+        return UserResponse(
+            success=True,
+            message=message,
+            user={
+                "id": auth_response.user.id,
+                "username": user_data.username,
+                "email": auth_response.user.email,
+                "plan": user_data.plan
+            },
+            token=access_token
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error en el registro: {str(e)}"
+        )
+
+
+@app.post("/auth/login", response_model=UserResponse)
+async def login(credentials: UserLogin):
+    """Iniciar sesión usando Supabase Auth"""
+    try:
+        auth_response = supabase.auth.sign_in_with_password({
+            "email": credentials.email,
+            "password": credentials.password
+        })
+        
+        if not auth_response.user or not auth_response.session:
+            raise HTTPException(
+                status_code=401,
+                detail="Credenciales inválidas"
+            )
+        
+        user_data_response = supabase.table("users").select("*").eq("id", auth_response.user.id).execute()
+        
+        if user_data_response.data:
+            user_info = user_data_response.data[0]
+            username = user_info["username"]
+            plan = user_info["plan"]
+        else:
+            user_metadata = auth_response.user.user_metadata or {}
+            username = user_metadata.get("username", credentials.email.split('@')[0])
+            plan = user_metadata.get("plan", "Free")
+        
+        return UserResponse(
+            success=True,
+            message="Inicio de sesión exitoso",
+            user={
+                "id": auth_response.user.id,
+                "username": username,
+                "email": auth_response.user.email,
+                "plan": plan
+            },
+            token=auth_response.session.access_token
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error en el inicio de sesión: {str(e)}"
+        )
 @app.post("/optimize", response_model=PromptResponse)
 async def optimize_prompt(request: PromptRequest):
 
@@ -94,7 +226,6 @@ async def optimize_prompt(request: PromptRequest):
         
         elapsed_time = time.time() - start_time
         
-        # Calcular costo aproximado
         approximate_cost = (enhancer.prompt_tokens * i_cost) + (enhancer.completion_tokens * o_cost)
         
         explanation = None
@@ -106,7 +237,6 @@ async def optimize_prompt(request: PromptRequest):
                 "changes_summary": "El prompt ha sido mejorado con claridad, estructura y contexto adicional para obtener mejores resultados."
             }
         
-        # Construir respuesta
         response = PromptResponse(
             success=True,
             original_prompt=request.text,
@@ -158,7 +288,6 @@ async def get_available_models():
     }
 
 
-# Manejo de errores global
 @app.exception_handler(Exception)
 async def global_exception_handler(request, exc):
     """Manejador global de excepciones"""
@@ -172,4 +301,3 @@ async def global_exception_handler(request, exc):
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
-

@@ -1,5 +1,5 @@
 """
-Aplicación Backend para Optimización de Prompts
+Prompt Enhancer AI
 """
 
 __version__ = "1.0.0"

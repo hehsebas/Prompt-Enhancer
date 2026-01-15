@@ -6,16 +6,27 @@
 
 .main-content {
   flex: 1;
+  margin-left: 280px;
   padding: var(--spacing-xl) var(--spacing-md);
+  transition: margin-left 0.3s ease;
 }
 
 .container {
   max-width: 1200px;
   margin: 0 auto;
-  width: 100%;
+  width: 100%; 
 }
 
-/* Sección de información */
+.title-h1 {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: var(--text-md);
+  font-weight: 700;
+  margin-bottom: var(--spacing-xl);
+  padding: 0 var(--spacing-md);
+}
+
 .info-section {
   background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
   color: white;
@@ -37,53 +48,6 @@
   opacity: 0.95;
 }
 
-/* Selector de modelo */
-.model-selector {
-  background: var(--bg-primary);
-  padding: var(--spacing-lg);
-  border-radius: var(--border-radius);
-  margin-bottom: var(--spacing-xl);
-  box-shadow: var(--shadow-sm);
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-  flex-wrap: wrap;
-}
-
-.model-selector label {
-  color: var(--text-primary);
-  font-size: 1rem;
-}
-
-.model-selector select {
-  flex: 1;
-  min-width: 250px;
-  padding: var(--spacing-sm) var(--spacing-md);
-  border: 2px solid var(--border-color);
-  border-radius: var(--border-radius-sm);
-  font-size: 1rem;
-  background: var(--bg-primary);
-  color: var(--text-primary);
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.model-selector select:hover:not(:disabled) {
-  border-color: var(--primary-color);
-}
-
-.model-selector select:focus {
-  outline: none;
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-}
-
-.model-selector select:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-/* Sección de consejos */
 .tips-section {
   background: var(--bg-primary);
   padding: var(--spacing-xl);
@@ -117,14 +81,12 @@
   color: var(--text-primary);
 }
 
-/* Footer */
 .footer {
   background: var(--bg-primary);
   border-top: 1px solid var(--border-color);
   padding: var(--spacing-lg);
   text-align: center;
   color: var(--text-secondary);
-  margin-top: var(--spacing-2xl);
 }
 
 .footer p {
@@ -132,10 +94,17 @@
   font-size: 0.9rem;
 }
 
-/* Responsive Design */
+
 @media (max-width: 768px) {
   .main-content {
+    margin-left: 0;
     padding: var(--spacing-md) var(--spacing-sm);
+    padding-top: 70px;
+  }
+  
+  .title-h1 {
+    font-size: var(--text-xs);
+    margin-bottom: var(--spacing-lg);
   }
 
   .info-section {
@@ -184,6 +153,10 @@
 
   .tips-section h3 {
     font-size: 1.1rem;
+  }
+  .title-h1 {
+    font-size: var(--text-xs);
+    margin-bottom: var(--spacing-lg);
   }
 }
 

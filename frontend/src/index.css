@@ -12,42 +12,39 @@
 }
 
 :root {
-  /* Colores principales */
   --primary-color: #6366f1;
   --primary-hover: #4f46e5;
   --primary-light: #818cf8;
   --secondary-color: #10b981;
   --danger-color: #ef4444;
   
-  /* Colores de fondo */
   --bg-primary: #ffffff;
   --bg-secondary: #f9fafb;
   --bg-tertiary: #f3f4f6;
+  --bg-gray-100: #EEEEEE;
   --bg-gray-400: #CACACA;
   --bg-success-700: #0C9D61;
   --bg-success-600: #47B881;
   --bg-success-500: #6BC497;
+  --bg-danger-100: #FFCCD2;
   
-  /* Colores de texto */
   --text-primary: #111827;
   --text-secondary: #6b7280;
   --text-tertiary: #9ca3af;
   
-  /* Bordes */
   --border-color: #e5e7eb;
   --border-color-hover: #CACACA;
+  --border-danger-100: #FFB6C1;
   --border-radius: 12px;
   --border-radius-sm: 8px;
   --border-radius-md: 10px;
   --border-radius-lg: 12px;
   
-  /* Sombras */
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
   --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
   
-  /* Espaciado */
   --spacing-xs: 0.25rem;
   --spacing-sm: 0.5rem;
   --spacing-md: 1rem;
@@ -55,11 +52,19 @@
   --spacing-xl: 2rem;
   --spacing-2xl: 3rem;
   
-  /* Tipografía */
   --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
   --font-mono: 'Courier New', Courier, monospace;
+
+  --text-xs: 0.625rem;
+  --text-sm: 0.875rem;
+  --text-md: 1rem;
+  --text-lg: 1.5rem;
+  --text-xl: 2rem;
+  --text-2xl: 2.5rem;
+  --text-3xl: 3rem;
+  --text-4xl: 3.5rem;
 }
 
 body {
