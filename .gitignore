@@ -23,7 +23,7 @@ node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-dist/
+# dist/  # Comentado para permitir frontend/dist en git (necesario para deploy)
 dist-ssr/
 *.local
 

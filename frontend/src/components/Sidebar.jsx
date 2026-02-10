@@ -1,11 +1,17 @@
 import './Sidebar.css'
-import { LogIn, LogOut, User} from 'lucide-react'
+import { LogIn, LogOut, User, Plus, Search, Trash2, MessageSquare, PanelLeft, AlertTriangle } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { useChat } from '../context/ChatContext'
+import { useState } from 'react'
 
-function Sidebar({ isOpen, onClose }){
+function Sidebar({ isOpen, onClose, isCollapsed, onToggleCollapse }){
   const { user, isAuthenticated, logout } = useAuth()
+  const { chats, currentChat, createNewChat, selectChat, deleteChat, searchChats } = useChat()
   const navigate = useNavigate()
+  const [searchQuery, setSearchQuery] = useState('')
+  const [showDeleteModal, setShowDeleteModal] = useState(null)
+  const [showSearchModal, setShowSearchModal] = useState(false)
 
   const handleLogout = () => {
     logout()
@@ -13,32 +19,158 @@ function Sidebar({ isOpen, onClose }){
     navigate('/')
   }
 
+  const handleNewChat = async () => {
+    await createNewChat()
+    if (window.innerWidth <= 768) {
+      onClose()
+    }
+  }
+
+  const handleSelectChat = async (chatId) => {
+    await selectChat(chatId)
+    if (window.innerWidth <= 768) {
+      onClose()
+    }
+  }
+
+  const handleDeleteClick = (chatId, e) => {
+    e.stopPropagation()
+    setShowDeleteModal(chatId)
+  }
+
+  const handleConfirmDelete = async () => {
+    if (showDeleteModal) {
+      await deleteChat(showDeleteModal)
+      setShowDeleteModal(null)
+    }
+  }
+
+  const handleCancelDelete = () => {
+    setShowDeleteModal(null)
+  }
+  const handleSearchClick = () => {
+    setShowSearchModal(true)
+  }
+  const handleCancelSearch = () => {
+    setShowSearchModal(false)
+  }
+  const handleSearch = (query) => {
+    setSearchQuery(query)
+    if (query.trim()) {
+      searchChats(query)
+    } else {
+      // Recargar todos los chats si la búsqueda está vacía
+      searchChats('')
+    }
+  }
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString)
+    const now = new Date()
+    const diffTime = Math.abs(now - date)
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
+    
+    if (diffDays === 0) {
+      return 'Hoy'
+    } else if (diffDays === 1) {
+      return 'Ayer'
+    } else if (diffDays < 7) {
+      return `Hace ${diffDays} días`
+    } else {
+      return date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })
+    }
+  }
+
   return (
     <>
       {isOpen && <div className="sidebar-overlay" onClick={onClose}></div>}
       
-      <aside className={`sidebar ${isOpen ? 'sidebar-open' : ''}`}>
+      <aside className={`sidebar ${isOpen ? 'sidebar-open' : ''} ${isCollapsed ? 'sidebar-collapsed' : ''}`}>
         <div className="sidebar-header">
-          <h3>Prompt Enhancer</h3>
+          <h3 className="sidebar-title">Prompt Enhancer</h3>
+          <button onClick={onToggleCollapse} className="sidebar-toggle-button" title={isCollapsed ? 'Expandir sidebar' : 'Colapsar sidebar'}>
+            <PanelLeft size={16} className="sidebar-toggle-icon" />
+          </button>
         </div>
         
-        <nav className="sidebar-nav">
-          <ul>
-            <li>
-              <a href="/" className="sidebar-link active">
-                <span className="sidebar-icon"></span>
-                <span>Nuevo Chat</span>
-              </a>
-            </li>
-            <li>
-              <a href="#" className="sidebar-link">
-                <span className="sidebar-icon">
-                </span>
-                <span>Chats</span>
-              </a>
-            </li>
-          </ul>
-        </nav>
+        {isAuthenticated ? (
+          <>
+            <div className="sidebar-new-chat">
+              <button 
+                className="btn-new-chat" 
+                onClick={handleNewChat}
+                title="Nuevo chat"
+                >
+                  <Plus size={16} className="sidebar-new-chat-icon" />
+              <span className="sidebar-text">Nuevo chat</span>
+              </button>
+            </div>
+            <div className="sidebar-search">
+              <button
+                className="btn-search"
+                onClick={handleSearchClick}
+              >
+                <Search size={16} className="sidebar-search-icon" />
+                <span className="sidebar-text">Buscar chats</span>
+              </button>
+            </div>
+
+
+            <div className="sidebar-chats">
+              <h4 className="sidebar-text">Tus chats</h4>
+              {chats.length === 0 ? (
+                <div className="empty-state">
+                  <MessageSquare size={20} className="empty-icon" />
+                  <p className="sidebar-text">No hay chats guardados</p>
+                  <p className="empty-subtitle sidebar-text">
+                    Crea uno nuevo para comenzar
+                  </p>
+                </div>
+              ) : (
+                <div className="chats-list">
+                  {chats.map(chat => (
+                    <div
+                      key={chat.id}
+                      className={`chat-item ${currentChat?.id === chat.id ? 'active' : ''}`}
+                      onClick={() => handleSelectChat(chat.id)}
+                      title={chat.title}
+                    >
+                      <MessageSquare size={16} className="chat-icon" />
+                      <div className="chat-info">
+                        <h4 className="chat-title">{chat.title}</h4>
+                        <div className="chat-meta">
+                          <span className="chat-date">{formatDate(chat.updated_at)}</span>
+                          {chat.message_count > 0 && (
+                            <span className="chat-count">{chat.message_count} msgs</span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="chat-actions">
+                        <button
+                          onClick={(e) => handleDeleteClick(chat.id, e)}
+                          className="btn-icon-small btn-delete"
+                          title="Eliminar chat"
+                          aria-label="Eliminar chat"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </>
+        ) : (
+          <div className="sidebar-guest-info">
+            <div className="guest-message">
+              <h4>Modo Invitado</h4>
+              <p className="guest-subtitle">
+                Inicia sesión para guardar tu historial y acceder a conversaciones avanzadas
+              </p>
+            </div>
+          </div>
+        )}
         
         {isAuthenticated ? (
           <div className="sidebar-footer">
@@ -53,17 +185,46 @@ function Sidebar({ isOpen, onClose }){
                 </span>
               </div>
             </div>
-            <button onClick={handleLogout} className="logout-button">
+            <button onClick={handleLogout} className="logout-button" title="Cerrar sesión">
               <LogOut size={18} />
             </button>
           </div>
         ) : (
-          <Link to="/login" className="sidebar-footer login-link">
-            <LogIn size={18} />
-            <span>Log in</span>
+          <Link to="/login" className="sidebar-footer login-link" title="Iniciar sesión">
+            <LogIn size={16} />
+            <span className="sidebar-text">Log in</span>
           </Link>
         )}
       </aside>
+
+      {/* Modal de confirmación para eliminar */}
+      {showDeleteModal && (
+        <div className="delete-modal-overlay" onClick={handleCancelDelete}>
+          <div className="delete-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="delete-modal-icon">
+              <AlertTriangle size={48} />
+            </div>
+            <h3 className="delete-modal-title">¿Eliminar este chat?</h3>
+            <p className="delete-modal-message">
+              Esta acción no se puede deshacer. Se eliminará el chat y todos sus mensajes permanentemente.
+            </p>
+            <div className="delete-modal-actions">
+              <button 
+                onClick={handleCancelDelete} 
+                className="btn-cancel"
+              >
+                Cancelar
+              </button>
+              <button 
+                onClick={handleConfirmDelete} 
+                className="btn-confirm-delete"
+              >
+                Eliminar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   )
 }

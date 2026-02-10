@@ -1,227 +1,140 @@
 import os
-import asyncio
 from pathlib import Path
-from openai import AsyncOpenAI
+import google.generativeai as genai
 from dotenv import load_dotenv
 
 backend_dir = Path(__file__).parent.parent
 env_path = backend_dir / '.env'
 load_dotenv(dotenv_path=env_path, override=True)
 
-api_key = os.getenv("OPENAI_API_KEY")
-if not api_key:
+google_api_key = os.getenv("GOOGLE_API_KEY")
+if not google_api_key:
     raise ValueError(
-        "OPENAI_API_KEY no encontrada o no valida "
+        "GOOGLE_API_KEY no encontrada o no valida. "
+        "Por favor configura tu API key de Google AI Studio en el archivo .env"
     )
 
-client = AsyncOpenAI(api_key=api_key)
-
+# Configurar Gemini
+genai.configure(api_key=google_api_key)
 
 class PromptEnhancer:
+    """Servicio para mejorar prompts usando principios de ingeniería de prompts"""
     
-    def __init__(self, model="gpt-4o-mini", tools_dict=None):
+    def __init__(self, model="gemini-2.5-flash"):
         self.model = model
         self.prompt_tokens = 0
         self.completion_tokens = 0
-        self.tools_dict = tools_dict or {}
 
-    async def call_llm(self, prompt):
-        response = await client.chat.completions.create(
-            model=self.model,
-            messages=[
-                {
-                    "role": "system", 
-                    "content": 
-                        "Eres un asistente altamente inteligente especializado en ingeniería de prompts. "
-                        "Tu tarea es analizar y comprender el prompt proporcionado, "
-                        "luego proporcionar una respuesta clara y concisa basada estrictamente en las instrucciones dadas. "
-                        "No incluyas explicaciones adicionales o contexto más allá de lo requerido."
-                },
-                {
-                    "role": "user", 
-                    "content": prompt
-                } 
-            ],
-            temperature=0.0,
+
+    async def enhance_prompt_stream(self, user_input):
+        """
+        Mejora un prompt usando principios de ingeniería de prompts.
+        Devuelve solo el prompt mejorado, listo para copiar y usar.
+        """
+        instructions = (
+            "Eres un experto en ingeniería de prompts. Tu trabajo es tomar prompts simples "
+            "y transformarlos en versiones mejoradas, claras y efectivas que generen mejores resultados. "
+            "Aplica principios como: especificar el rol, dar contexto, estructurar bien las instrucciones, "
+            "y definir el formato de salida esperado."
         )
         
-        self.prompt_tokens += response.usage.prompt_tokens
-        self.completion_tokens += response.usage.completion_tokens
+        user_message = f"""Mejora el siguiente prompt aplicando principios de ingeniería de prompts:
 
-        return response.choices[0].message.content
+"{user_input}"
 
-    async def analyze_and_expand_input(self, input_prompt):
-        analysis_and_expansion_prompt = f"""
-        Eres un asistente altamente inteligente especializado en análisis de prompts.
-        Analiza el {{prompt}} proporcionado y genera respuestas concisas para los siguientes aspectos clave:
+**Instrucciones:**
+- Devuelve SOLO el prompt mejorado, sin explicaciones adicionales
+- El prompt debe ser claro, específico y bien estructurado
+- Si el prompt original es muy vago o corto, añade contexto razonable
+- Mantén el objetivo original del prompt
+- Usa un lenguaje directo y profesional
 
-        - **Objetivo principal del prompt:** Identifica el tema central o solicitud dentro del prompt proporcionado.
-        - **Persona:** Recomienda la persona más relevante para que el modelo de IA adopte (ej: experto, profesor, conversacional, etc.)
-        - **Longitud óptima de salida:** Sugiere una longitud óptima (corta, breve, media, larga) basada en la tarea, y da un número aproximado de palabras si es apropiado.
-        - **Formato de salida más conveniente:** Recomienda el formato óptimo para el resultado (ej: lista, párrafo, código, tabla, JSON, etc.).
-        - **Requisitos específicos:** Destaca cualquier condición especial, regla o expectativa establecida o implícita dentro del prompt.
-        - **Mejoras sugeridas:** Ofrece recomendaciones sobre cómo modificar o mejorar el prompt para una generación de salida más precisa o eficiente.
-        - **Prompting de un ejemplo:** Crea un ejemplo relacionado para guiar la generación de salida.
+Prompt mejorado:"""
         
-        Luego úsalos para reformular y expandir el {{prompt}} proporcionado.
-        Devuelve el prompt expandido como salida en formato de texto. Abstente de explicar el proceso de generación.
-
-        Ejemplo 1:
-        {{prompt}}: "Explica el entrelazamiento cuántico a un niño de 10 años."
+        model = genai.GenerativeModel(
+            model_name=self.model,
+            system_instruction=instructions
+        )
         
-        *proceso_de_pensamiento*:
-        - **Objetivo principal:** Simplificar concepto complejo de física cuántica para niños.
-        - **Persona:** Profesor paciente y amigable
-        - **Longitud óptima:** Breve (100-150 palabras)
-        - **Formato más conveniente:** Narrativa con analogía
-        - **Requisitos específicos:** Explicación apropiada para edad (10 años).
-        - **Mejoras sugeridas:** 
-            - Solicitar analogías específicas
-            - Incluir elementos interactivos
-            - Agregar preguntas de seguimiento
-            - Sugerir ayudas visuales
-        - **Ejemplo de salida:**
-            "Imagina que tienes dos pares especiales de calcetines. Cuando pones un calcetín en tu habitación y el otro en la cocina, 
-            ¡algo mágico sucede! Lo que le pasa a un calcetín afecta instantáneamente al otro calcetín. 
-            Si volteas un calcetín al revés, el otro calcetín automáticamente se voltea al revés también, ¡sin importar qué tan lejos estén!" 
+        # Streaming de la respuesta
+        stream = await model.generate_content_async(
+            contents=user_message,
+            generation_config=genai.types.GenerationConfig(
+                temperature=0.7,
+                max_output_tokens=2048,
+                top_p=0.95,
+                top_k=40,
+            ),
+            stream=True
+        )
         
-        *salida*:
-        Como un profesor de ciencias amigable, por favor explica el entrelazamiento cuántico a un estudiante de 10 años usando estas pautas:
-
-        Comienza con una analogía relacionable usando objetos cotidianos
-        Usa lenguaje simple y claro evitando términos técnicos
-        Incluye 2-3 ejemplos interactivos que demuestren el concepto
-        Agrega datos curiosos que despierten la curiosidad
-        Termina con preguntas simples para verificar la comprensión
-        Mantén la explicación breve (100-150 palabras)
-
-        Estructura tu explicación así:
-        
-        Analogía de apertura
-        Explicación principal con ejemplos
-        Escenarios interactivos "¿Qué pasaría si...?"
-        Datos curiosos sobre el entrelazamiento cuántico
-        Preguntas para verificar comprensión
-
-        Recuerda mantener un tono entusiasta y alentador durante toda la explicación.
-        
-        Ejemplo de salida:
-        Imagina que tienes dos pares especiales de calcetines. Cuando pones un calcetín en tu habitación y el otro en la cocina, 
-        ¡algo mágico sucede! Lo que le pasa a un calcetín afecta instantáneamente al otro calcetín. 
-        Si volteas un calcetín al revés, el otro calcetín automáticamente se voltea al revés también, ¡sin importar qué tan lejos estén!
-
-        Ahora, analiza el siguiente prompt y devuelve solo la *salida* generada:
-        {{prompt}}: {input_prompt}
-        """
-
-        return await self.call_llm(analysis_and_expansion_prompt)
-
-    async def decompose_and_add_reasoning(self, expanded_prompt):
-
-        decomposition_and_reasoning_prompt = f"""
-        Eres un asistente de IA altamente capaz encargado de mejorar la ejecución de tareas complejas.
-        Analiza el {{prompt}} proporcionado y úsalo para generar la siguiente salida:
-        
-        - **Descomposición en subtareas:** Divide la tarea descrita en el prompt en subtareas manejables y específicas que el modelo de IA necesita abordar.
-        - **Razonamiento en cadena de pensamiento:** Para subtareas que involucren pensamiento crítico o pasos complejos, agrega razonamiento usando un enfoque paso a paso para mejorar la toma de decisiones y la calidad de salida.
-        - **Criterios de éxito:** Define qué constituye una finalización exitosa para cada subtarea, asegurando una guía clara para los resultados esperados.
-
-        Devuelve la siguiente salida estructurada para cada subtarea:
-
-        1. **Descripción de subtarea**: Describe una subtarea específica.
-        2. **Razonamiento**: Proporciona razonamiento o explicación de por qué esta subtarea es esencial o cómo debe abordarse.
-        3. **Criterios de éxito**: Define cómo se ve la finalización exitosa para esta subtarea.
-
-        Ejemplo:
-        {{Prompt}}: "Explica cómo se evalúan los modelos de aprendizaje automático usando validación cruzada."
-
-        ##PROCESO DE PENSAMIENTO##
-        *Subtarea 1*:
-        - **Descripción**: Define la validación cruzada y su propósito.
-        - **Razonamiento**: Aclarar el concepto asegura que el lector entienda el mecanismo básico detrás de la evaluación del modelo.
-        - **Criterios de éxito**: La explicación debe incluir una definición clara de validación cruzada y su rol en evaluar el rendimiento del modelo.
-        
-        *Subtarea 2*:
-        - **Descripción**: Describe cómo la validación cruzada divide los datos en conjuntos de entrenamiento y validación.
-        - **Razonamiento**: Explicar la división es crucial para entender cómo los modelos son validados y probados para generalización.
-        - **Criterios de éxito**: Una explicación adecuada de validación cruzada k-fold con una ilustración de cómo se dividen los datos.
-
-        Ahora, analiza el siguiente prompt expandido y devuelve las subtareas, razonamiento y criterios de éxito.
-        Prompt: {expanded_prompt}
-        """
-        return await self.call_llm(decomposition_and_reasoning_prompt)
-
-    async def suggest_enhancements(self, input_prompt, tools_dict=None):
-        if tools_dict is None:
-            tools_dict = {}
+        # Procesar el stream
+        async for chunk in stream:
+            if hasattr(chunk, 'text') and chunk.text:
+                yield chunk.text
             
-        enhancement_suggestion_prompt = f"""
-        Eres un asistente altamente inteligente especializado en sugerencia de referencias e integración de herramientas.
-        Analiza el {{input_prompt}} proporcionado y el {{tools_dict}} disponible para recomendar mejoras:
+            # Actualizar tokens si están disponibles
+            if hasattr(chunk, 'usage_metadata') and chunk.usage_metadata:
+                self.prompt_tokens = chunk.usage_metadata.prompt_token_count
+                self.completion_tokens = chunk.usage_metadata.candidates_token_count
 
-        - **Necesidad de referencias:** Determina si materiales de referencia adicionales beneficiarían la ejecución de la tarea (ej: sitios web, documentaciones, libros, artículos, etc.)
-        - **Aplicabilidad de herramientas:** Evalúa si alguna herramienta disponible podría mejorar la eficiencia o precisión
-        - **Complejidad de integración:** Evalúa el esfuerzo requerido para incorporar los recursos sugeridos
-        - **Impacto esperado:** Estima la mejora potencial en la calidad de salida
-        
-        Si las mejoras son justificadas, proporciona recomendaciones estructuradas en este formato:
-        
-        ##SUGERENCIAS DE REFERENCIAS##
-        (Solo si aplica, máximo 3)
-        - Nombre/tipo de referencia
-        - Propósito: Cómo mejora la salida
-        - Integración: Cómo incorporarla
-        
-        ##SUGERENCIAS DE HERRAMIENTAS##
-        (Solo si aplica, máximo 3)
-        - Nombre de herramienta del tools_dict
-        - Propósito: Cómo mejora la tarea
-        - Integración: Cómo implementarla
-        
-        Si ninguna mejora mejoraría significativamente la salida, devuelve una cadena vacía ""
-
-        Ahora, analiza el siguiente prompt y herramientas, luego devuelve solo la *salida* generada:
-        {{input_prompt}}: {input_prompt}
-        {{tools_dict}}: {tools_dict}
+    async def generate_chat_title(self, user_input):
         """
-        return await self.call_llm(enhancement_suggestion_prompt)
-
-    async def assemble_prompt(self, components):
-        """Ensambla todos los componentes en un prompt cohesivo"""
-        expanded_prompt = components.get("expanded_prompt", "")
-        decomposition_and_reasoning = components.get("decomposition_and_reasoninng", "")
-        suggested_enhancements = components.get("suggested_enhancements", "")
-        
-        output_prompt = (
-            f"{expanded_prompt}\n\n"
-            f"{suggested_enhancements}\n\n"
-            f"{decomposition_and_reasoning}"
-        )
-        return output_prompt
-
-    async def enhance_prompt(self, input_prompt):
-        tools_dict = {}
-        
-        expanded_prompt = await self.analyze_and_expand_input(input_prompt)
-        
-        suggested_enhancements, decomposition_and_reasoning = await asyncio.gather(
-            self.suggest_enhancements(input_prompt, tools_dict),
-            self.decompose_and_add_reasoning(expanded_prompt)
+        Genera un título descriptivo y conciso para el chat basado en el mensaje del usuario.
+        Usa IA para interpretar el contenido y crear un título relevante.
+        """
+        instructions = (
+            "Eres un experto en análisis de texto. Tu trabajo es leer un mensaje del usuario "
+            "e interpretar su intención principal para crear un título breve y descriptivo."
         )
         
-        components = {
-            "expanded_prompt": expanded_prompt,
-            "decomposition_and_reasoninng": decomposition_and_reasoning,
-            "suggested_enhancements": suggested_enhancements
-        }
+        user_message = f"""Analiza el siguiente mensaje y genera un título breve que describa de qué trata:
+
+"{user_input}"
+
+**Instrucciones:**
+- Devuelve SOLO el título, sin explicaciones ni puntos al final
+- El título debe ser descriptivo y claro (máximo 6-8 palabras)
+- Interpreta la intención del usuario, no copies textualmente
+- Usa un lenguaje profesional y directo
+- No uses comillas en el título
+
+Ejemplos:
+- Mensaje: "Necesito ayuda para crear un plan de marketing para mi startup" → Título: "Plan de marketing para startup"
+- Mensaje: "Cómo puedo mejorar mi currículum para aplicar a trabajos de tecnología" → Título: "Mejora de currículum tecnológico"
+- Mensaje: "Explícame qué es machine learning" → Título: "Explicación de machine learning"
+
+Título:"""
         
-        output_prompt = await self.assemble_prompt(components)
+        model = genai.GenerativeModel(
+            model_name=self.model,
+            system_instruction=instructions
+        )
         
-        # Retornar diccionario con todos los componentes
-        return {
-            "advanced_prompt": output_prompt,
-            "expanded_prompt": expanded_prompt,
-            "decomposition_and_reasoninng": decomposition_and_reasoning,
-            "suggested_enhancements": suggested_enhancements
-        }
+        # Generar título (sin streaming)
+        response = await model.generate_content_async(
+            contents=user_message,
+            generation_config=genai.types.GenerationConfig(
+                temperature=0.3,  # Más determinista para títulos consistentes
+                max_output_tokens=50,  # Títulos cortos
+                top_p=0.9,
+                top_k=20,
+            )
+        )
+        
+        # Actualizar tokens si están disponibles
+        if hasattr(response, 'usage_metadata') and response.usage_metadata:
+            self.prompt_tokens += response.usage_metadata.prompt_token_count
+            self.completion_tokens += response.usage_metadata.candidates_token_count
+        
+        # Limpiar el título (remover comillas, puntos, etc.)
+        title = response.text.strip()
+        title = title.strip('"\'.,;:')
+        
+        # Limitar longitud por seguridad
+        if len(title) > 60:
+            title = title[:57] + '...'
+        
+        return title or "Nuevo Chat"
+
 

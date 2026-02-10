@@ -17,20 +17,18 @@ export function AuthProvider({ children }) {
                       session.user.user_metadata?.name ||
                       session.user.email?.split('@')[0]
 
-      // Verificar si el usuario ya existe en la tabla users
       const { data: existingUser, error: selectError } = await supabase
         .from('users')
         .select('*')
         .eq('id', session.user.id)
-        .maybeSingle() // Usar maybeSingle en lugar de single para evitar error si no existe
+        .maybeSingle()
 
       if (selectError && selectError.code !== 'PGRST116') {
-        console.error('Error al verificar usuario:', selectError)
+        console.error(selectError)
         return
       }
 
       if (!existingUser) {
-        // Si no existe, insertarlo
         const { data: insertedUser, error: insertError } = await supabase
           .from('users')
           .insert({
@@ -43,20 +41,19 @@ export function AuthProvider({ children }) {
           .single()
 
         if (insertError) {
-          console.error('Error al insertar usuario en la tabla:', insertError)
-          console.error('Detalles:', insertError.message)
+          console.error(insertError)
+          console.error(insertError.message)
         } else {
-          console.log('Usuario OAuth sincronizado con la tabla users:', insertedUser)
+          console.log(insertedUser)
         }
       } else {
-        console.log('Usuario ya existe en la tabla users:', existingUser)
+        console.log(existingUser)
       }
     } catch (error) {
-      console.error('Error al sincronizar usuario OAuth:', error)
+      console.error(error)
     }
   }
 
-  // Función auxiliar para crear el objeto de usuario desde la sesión
   const createUserFromSession = (session) => {
     const username = session.user.user_metadata?.full_name || 
                     session.user.user_metadata?.name ||
@@ -76,47 +73,33 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     let isMounted = true
     
-    // Cargar usuario del localStorage al iniciar
     const loadUser = async () => {
       if (!isMounted) return
       
-      console.log('🔄 Cargando usuario...')
-      
       try {
-        // Verificar si hay tokens en la URL (después del redirect de OAuth)
         const hashParams = new URLSearchParams(window.location.hash.substring(1))
         const accessToken = hashParams.get('access_token')
         const refreshToken = hashParams.get('refresh_token')
         
-        if (accessToken && refreshToken) {
-          console.log('✅ Tokens encontrados en URL, estableciendo sesión...')
-          
-          // Limpiar la URL PRIMERO (antes de setSession)
+        if (accessToken && refreshToken) {        
           window.history.replaceState({}, document.title, window.location.pathname)
           
-          // Establecer la sesión con los tokens de la URL
           const { data: { session }, error } = await supabase.auth.setSession({
             access_token: accessToken,
             refresh_token: refreshToken
           })
           
           if (error) {
-            console.error('❌ Error al establecer sesión:', error)
+            console.error(error)
           } else if (session && isMounted) {
-            console.log('✅ Sesión establecida correctamente:', session.user.email)
-            
-            // Sincronizar usuario con la tabla users (sin await para no bloquear)
             syncOAuthUserToDatabase(session).catch(err => 
-              console.error('Error sincronizando usuario:', err)
+              console.error(err)
             )
             
-            // Crear objeto de usuario
             const supabaseUser = createUserFromSession(session)
             
-            console.log('👤 Usuario OAuth cargado:', supabaseUser)
             setUser(supabaseUser)
             
-            // Guardar en localStorage
             localStorage.setItem('user', JSON.stringify(supabaseUser))
             localStorage.setItem('supabase_session', JSON.stringify(session))
             
@@ -125,32 +108,20 @@ export function AuthProvider({ children }) {
           }
         }
         
-        // Si no hay tokens en URL, verificar sesión existente
         const { data: { session } } = await supabase.auth.getSession()
         
         if (session && isMounted) {
-          console.log('✅ Sesión existente encontrada:', session.user.email)
-          
-          // Crear objeto de usuario
           const supabaseUser = createUserFromSession(session)
-          
-          console.log('👤 Usuario OAuth cargado:', supabaseUser)
           setUser(supabaseUser)
-          
-          // Guardar en localStorage
           localStorage.setItem('user', JSON.stringify(supabaseUser))
           localStorage.setItem('supabase_session', JSON.stringify(session))
         } else if (isAuthenticated() && isMounted) {
-          // Usuario autenticado con email/password tradicional
           const currentUser = getCurrentUser()
-          console.log('👤 Usuario tradicional cargado:', currentUser)
           setUser(currentUser)
-        } else if (isMounted) {
-          console.log('❌ No hay sesión activa')
         }
       } catch (error) {
         if (isMounted) {
-          console.error('❌ Error en loadUser:', error)
+          console.error(error)
         }
       }
       
@@ -161,24 +132,18 @@ export function AuthProvider({ children }) {
 
     loadUser()
 
-    // Suscribirse a cambios de autenticación de Supabase
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!isMounted) return
       
-      console.log('🔔 Evento de autenticación:', event)
-      
       if (event === 'SIGNED_OUT') {
-        console.log('👋 Usuario cerró sesión')
         setUser(null)
         localStorage.removeItem('user')
         localStorage.removeItem('supabase_session')
       } else if (event === 'TOKEN_REFRESHED' && session) {
-        console.log('🔄 Token refrescado')
         const supabaseUser = createUserFromSession(session)
         setUser(supabaseUser)
         localStorage.setItem('user', JSON.stringify(supabaseUser))
       }
-      // Ignorar SIGNED_IN aquí porque ya lo manejamos en loadUser
     })
 
     return () => {
@@ -193,30 +158,22 @@ export function AuthProvider({ children }) {
 
   const logout = async () => {
     try {
-      console.log('🚪 Cerrando sesión...')
-      
-      // Cerrar sesión en Supabase (esto también revoca el token de Google)
       const { error } = await supabase.auth.signOut()
       
       if (error) {
-        console.error('Error al cerrar sesión en Supabase:', error)
+        console.error(error)
       }
       
-      // Limpiar todo el almacenamiento local
       localStorage.removeItem('user')
       localStorage.removeItem('supabase_session')
       localStorage.removeItem('token')
       
-      // Cerrar sesión tradicional
       logOutService()
       
-      // Actualizar estado
       setUser(null)
       
-      console.log('✅ Sesión cerrada correctamente')
     } catch (error) {
-      console.error('Error en logout:', error)
-      // Aún así limpiar el estado local
+      console.error(error)
       localStorage.clear()
       setUser(null)
     }

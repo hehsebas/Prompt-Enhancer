@@ -19,6 +19,8 @@ function SignUp() {
   })
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
 
   const handleChange = (e) => {
     setFormData({
@@ -81,13 +83,16 @@ function SignUp() {
       setIsLoading(true)
       setError('')
       
+      // Usar la URL base de la aplicación desde variables de entorno o window.location
+      const redirectUrl = import.meta.env.VITE_APP_URL || window.location.origin
+      
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/`,
+          redirectTo: `${redirectUrl}/`,
           queryParams: {
             access_type: 'offline',
-            prompt: 'select_account', // Fuerza selección de cuenta cada vez
+            prompt: 'select_account', 
           },
         },
       })
@@ -96,17 +101,22 @@ function SignUp() {
         throw error
       }
 
-      // La redirección a Google se maneja automáticamente
-    } catch (err) {
+         } catch (err) {
       setError(err.message || 'Error al iniciar sesión con Google')
       setIsLoading(false)
     }
   }
 
   return (
-    <div className="signup-container">
-      <Sidebar isOpen={false} onClose={() => {}} />
-      <div className="signup-card">
+    <div className="signup-page-wrapper">
+      <Sidebar 
+        isOpen={sidebarOpen} 
+        onClose={() => setSidebarOpen(false)} 
+        isCollapsed={sidebarCollapsed} 
+        onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)} 
+      />
+      <div className="signup-container">
+        <div className="signup-card">
         <Link to="/" className="back-button">
           <ArrowLeft size={20} />
           <span>Volver</span>
@@ -193,6 +203,7 @@ function SignUp() {
 
         <div className="signup-footer">
           <p>¿Ya tienes cuenta? <Link to="/login" className="login-link">Iniciar sesión</Link></p>
+        </div>
         </div>
       </div>
     </div>
