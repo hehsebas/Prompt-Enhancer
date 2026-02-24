@@ -12,6 +12,7 @@ function Sidebar({ isOpen, onClose, isCollapsed, onToggleCollapse }){
   const [searchQuery, setSearchQuery] = useState('')
   const [showDeleteModal, setShowDeleteModal] = useState(null)
   const [showSearchModal, setShowSearchModal] = useState(false)
+  const [showProfileOptions, setShowProfileOptions] = useState(false)
 
   const handleLogout = () => {
     logout()
@@ -79,6 +80,10 @@ function Sidebar({ isOpen, onClose, isCollapsed, onToggleCollapse }){
     } else {
       return date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })
     }
+  }
+
+  const handleShowProfileOptions = () => {
+    setShowProfileOptions(!showProfileOptions)
   }
 
   return (
@@ -173,7 +178,7 @@ function Sidebar({ isOpen, onClose, isCollapsed, onToggleCollapse }){
         )}
         
         {isAuthenticated ? (
-          <div className="sidebar-footer">
+          <button className="sidebar-footer" onClick={handleShowProfileOptions}>
             <div className="user-info">
               <div className="user-avatar">
                 <User size={20} />
@@ -188,7 +193,7 @@ function Sidebar({ isOpen, onClose, isCollapsed, onToggleCollapse }){
             <button onClick={handleLogout} className="logout-button" title="Cerrar sesión">
               <LogOut size={18} />
             </button>
-          </div>
+          </button>
         ) : (
           <Link to="/login" className="sidebar-footer login-link" title="Iniciar sesión">
             <LogIn size={16} />
@@ -196,8 +201,6 @@ function Sidebar({ isOpen, onClose, isCollapsed, onToggleCollapse }){
           </Link>
         )}
       </aside>
-
-      {/* Modal de confirmación para eliminar */}
       {showDeleteModal && (
         <div className="delete-modal-overlay" onClick={handleCancelDelete}>
           <div className="delete-modal" onClick={(e) => e.stopPropagation()}>
@@ -222,6 +225,16 @@ function Sidebar({ isOpen, onClose, isCollapsed, onToggleCollapse }){
                 Eliminar
               </button>
             </div>
+          </div>
+        </div>
+      )}
+      {showProfileOptions && (
+        <div className="profile-options-overlay" onClick={handleCloseProfileOptions}>
+          <div className="profile-options" onClick={(e) => e.stopPropagation()}>
+            <h3>Opciones de perfil</h3>
+            <button onClick={handleLogout} className="logout-button" title="Cerrar sesión">
+              <LogOut size={18} />
+            </button>
           </div>
         </div>
       )}
