@@ -39,7 +39,7 @@ app.add_middleware(
 class PromptRequest(BaseModel):
     """Modelo para la solicitud de optimización de prompt"""
     text: str = Field(..., min_length=1, max_length=2000, description="Prompt original del usuario")
-    model: Optional[str] = Field(default="gemini-2.5-flash", description="Modelo de IA a utilizar")
+    model: Optional[str] = Field(default="gpt-4o-mini", description="Modelo de IA a utilizar")
 
 class PromptResponse(BaseModel):
     """Modelo para la respuesta de optimización"""
@@ -98,12 +98,30 @@ async def get_available_models():
     return {
         "models": [
             {
-                "id": "gemini-2.5-flash-latest-exp",
+                "id": "gpt-4o-mini",
                 "name": "GPT-4o Mini",
                 "description": "Modelo rápido y económico, recomendado para estudiantes",
                 "cost_per_1k_tokens": {
                     "input": 0.15 / 1000,
                     "output": 0.6 / 1000
+                }
+            },
+            {
+                "id": "gpt-4o",
+                "name": "GPT-4o",
+                "description": "Modelo más potente y preciso",
+                "cost_per_1k_tokens": {
+                    "input": 2.5 / 1000,
+                    "output": 10.0 / 1000
+                }
+            },
+            {
+                "id": "gpt-4-turbo",
+                "name": "GPT-4 Turbo",
+                "description": "Balance entre velocidad y calidad",
+                "cost_per_1k_tokens": {
+                    "input": 10.0 / 1000,
+                    "output": 30.0 / 1000
                 }
             }
         ]
@@ -118,7 +136,7 @@ async def generate_title(request: dict):
     """
     try:
         user_message = request.get("message", "")
-        model = request.get("model", "gemini-2.5-flash")
+        model = request.get("model", "gpt-4o-mini")
         
         if not user_message or len(user_message.strip()) == 0:
             return {"title": "Nuevo Chat"}
@@ -356,8 +374,14 @@ async def create_conversation_stream(
                 
                 elapsed_time = time.time() - start_time
                 
-                # Calcular costos para Gemini (gratis en tier free)
-                approximate_cost = 0.0
+                # Calcular costos aproximados para OpenAI
+                # Precios aproximados por 1K tokens (varían según el modelo)
+                cost_per_1k_input = {"gpt-4o-mini": 0.00015, "gpt-4o": 0.0025, "gpt-4-turbo": 0.01}
+                cost_per_1k_output = {"gpt-4o-mini": 0.0006, "gpt-4o": 0.01, "gpt-4-turbo": 0.03}
+                
+                input_cost = (enhancer.prompt_tokens / 1000) * cost_per_1k_input.get(request.model, 0.00015)
+                output_cost = (enhancer.completion_tokens / 1000) * cost_per_1k_output.get(request.model, 0.0006)
+                approximate_cost = input_cost + output_cost
                 
                 # Guardar respuesta del asistente solo si hay usuario autenticado
                 assistant_message_id = None

@@ -3,6 +3,7 @@ import { Loader2, ArrowRight, Copy, Check, AlertCircle, X } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useChat } from '../context/ChatContext'
 import { useAuth } from '../context/AuthContext'
+import '../index.css'
 import './ConversationView.css'
 import { useNavigate } from 'react-router-dom'
 
@@ -80,7 +81,7 @@ function ConversationView() {
 
       <div className="conversation-wrapper">
         {messages.length === 0 && !isLoading ? (
-          <div className="conversation-empty">
+          <div className="conversation-empty empty-state">
             <div className="empty-content">
               <h2>Hola {user?.username.split(' ')[0] || ''} con que puedo ayudarte hoy? </h2>
             </div>
@@ -137,7 +138,7 @@ function ConversationView() {
               placeholder={currentChat ? "Refina tu prompt o añade más contexto..." : "Escribe tu prompt aquí..."}
               disabled={isLoading || (!isAuthenticated && remainingPrompts === 0)}
               rows={3}
-              className="conversation-textarea"
+              className="conversation-textarea form-textarea"
             />
             <button
               onClick={handleSend}

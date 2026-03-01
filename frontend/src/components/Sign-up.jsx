@@ -1,3 +1,4 @@
+import '../index.css'
 import './Sign-up.css'
 import Sidebar from './Sidebar'
 import { Link, useNavigate } from 'react-router-dom'
@@ -116,7 +117,7 @@ function SignUp() {
         onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)} 
       />
       <div className="signup-container">
-        <div className="signup-card">
+        <div className="signup-card card slide-up">
         <Link to="/" className="back-button">
           <ArrowLeft size={20} />
           <span>Volver</span>
@@ -136,6 +137,7 @@ function SignUp() {
         <form className="signup-form" onSubmit={handleSubmit}>
           <div className="form-group">
             <input 
+              className="form-input"
               type="email" 
               id="email"
               name="email"
@@ -149,6 +151,7 @@ function SignUp() {
 
           <div className="form-group">
             <input 
+              className="form-input"
               type="password" 
               id="password"
               name="password"
@@ -164,6 +167,7 @@ function SignUp() {
 
           <div className="form-group">
             <input 
+              className="form-input"
               type="password" 
               id="confirmPassword"
               name="confirmPassword"
@@ -177,7 +181,7 @@ function SignUp() {
             />
           </div>
 
-          <button type="submit" className="signup-button" disabled={isLoading}>
+          <button type="submit" className="signup-button btn btn-primary" disabled={isLoading}>
             {isLoading ? 'Registrando...' : 'Crear Cuenta'}
           </button>
         </form>
@@ -202,7 +206,7 @@ function SignUp() {
         </button>
 
         <div className="signup-footer">
-          <p>¿Ya tienes cuenta? <Link to="/login" className="login-link">Iniciar sesión</Link></p>
+          <p>¿Ya tienes cuenta? <Link to="/login" className="link">Iniciar sesión</Link></p>
         </div>
         </div>
       </div>

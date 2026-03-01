@@ -1,3 +1,4 @@
+import '../index.css'
 import './Log-in.css'
 import Sidebar from './Sidebar'
 import { Link, useNavigate } from 'react-router-dom'
@@ -97,7 +98,7 @@ function LogIn() {
                 onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
             />
             <div className="login-container">
-                <div className="login-card">
+                <div className="login-card card slide-up">
                 <Link to="/" className="back-button">
                     <ArrowLeft size={12} />
                     <span>Volver</span>
@@ -117,6 +118,7 @@ function LogIn() {
                 <form className="login-form" onSubmit={handleSubmit}>
                     <div className="form-group">
                         <input 
+                            className="form-input"
                             type="email" 
                             id="email"
                             name="email"
@@ -130,6 +132,7 @@ function LogIn() {
 
                     <div className="form-group">
                         <input 
+                            className="form-input"
                             type="password" 
                             id="password"
                             name="password"
@@ -150,7 +153,7 @@ function LogIn() {
                         <a href="#" className="forgot-password">¿Olvidaste tu contraseña?</a>
                     </div>
 
-                    <button type="submit" className="login-button" disabled={isLoading}>
+                    <button type="submit" className="login-button btn btn-primary" disabled={isLoading}>
                         {isLoading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
                     </button>
                 </form>
@@ -175,7 +178,7 @@ function LogIn() {
                 </button>
 
                 <div className="login-footer">
-                    <p>¿No tienes cuenta? <Link to="/signup" className="signup-link">Regístrate</Link></p>
+                    <p>¿No tienes cuenta? <Link to="/signup" className="link">Regístrate</Link></p>
                 </div>
                 </div>
             </div>

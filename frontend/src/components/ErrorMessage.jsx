@@ -1,4 +1,5 @@
 import { AlertCircle, X } from 'lucide-react'
+import '../index.css'
 import './ErrorMessage.css'
 
 function ErrorMessage({ message, onClose }) {
@@ -12,7 +13,7 @@ function ErrorMessage({ message, onClose }) {
           <p>{message}</p>
         </div>
       </div>
-      <button className="error-close" onClick={onClose} title="Cerrar">
+      <button className="error-close btn-icon" onClick={onClose} title="Cerrar">
         <X size={20} />
       </button>
     </div>

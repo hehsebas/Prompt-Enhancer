@@ -65,7 +65,7 @@ class ConversationRequest(BaseModel):
     chat_id: Optional[UUID] = None  # None para crear un nuevo chat
     user_message: str = Field(..., min_length=1, max_length=2000)
     parent_message_id: Optional[UUID] = None  # Para iteraciones
-    model: Optional[str] = Field(default="gemini-2.5-flash")
+    model: Optional[str] = Field(default="gpt-4o-mini")
 
 
 class ConversationResponse(BaseModel):

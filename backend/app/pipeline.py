@@ -1,26 +1,25 @@
 import os
 from pathlib import Path
-import google.generativeai as genai
 from dotenv import load_dotenv
-
+from openai import OpenAI
 backend_dir = Path(__file__).parent.parent
 env_path = backend_dir / '.env'
 load_dotenv(dotenv_path=env_path, override=True)
 
-google_api_key = os.getenv("GOOGLE_API_KEY")
-if not google_api_key:
+openai_api_key = os.getenv("OPENAI_API_KEY")
+if not openai_api_key:
     raise ValueError(
-        "GOOGLE_API_KEY no encontrada o no valida. "
-        "Por favor configura tu API key de Google AI Studio en el archivo .env"
+        "OPENAI_API_KEY no encontrada o no valida. "
+        "Por favor configura tu API key de OpenAI en el archivo .env"
     )
 
-# Configurar Gemini
-genai.configure(api_key=google_api_key)
+# Configurar OpenAI
+openai_client = OpenAI(api_key=openai_api_key)
 
 class PromptEnhancer:
     """Servicio para mejorar prompts usando principios de ingeniería de prompts"""
     
-    def __init__(self, model="gemini-2.5-flash"):
+    def __init__(self, model="gpt-4o-mini"):
         self.model = model
         self.prompt_tokens = 0
         self.completion_tokens = 0
@@ -51,32 +50,26 @@ class PromptEnhancer:
 
 Prompt mejorado:"""
         
-        model = genai.GenerativeModel(
-            model_name=self.model,
-            system_instruction=instructions
+        response = openai_client.chat.completions.create(
+            model=self.model,
+            messages=[
+                {"role": "system", "content": instructions},
+                {"role": "user", "content": user_message}
+            ],
+            stream=True,
+            stream_options={"include_usage": True}  # Para obtener tokens al final
         )
         
         # Streaming de la respuesta
-        stream = await model.generate_content_async(
-            contents=user_message,
-            generation_config=genai.types.GenerationConfig(
-                temperature=0.7,
-                max_output_tokens=2048,
-                top_p=0.95,
-                top_k=40,
-            ),
-            stream=True
-        )
-        
-        # Procesar el stream
-        async for chunk in stream:
-            if hasattr(chunk, 'text') and chunk.text:
-                yield chunk.text
+        for chunk in response:
+            # Actualizar tokens si están disponibles (último chunk)
+            if hasattr(chunk, 'usage') and chunk.usage:
+                self.prompt_tokens = chunk.usage.prompt_tokens
+                self.completion_tokens = chunk.usage.completion_tokens
             
-            # Actualizar tokens si están disponibles
-            if hasattr(chunk, 'usage_metadata') and chunk.usage_metadata:
-                self.prompt_tokens = chunk.usage_metadata.prompt_token_count
-                self.completion_tokens = chunk.usage_metadata.candidates_token_count
+            # Enviar contenido si existe
+            if chunk.choices and len(chunk.choices) > 0 and chunk.choices[0].delta.content:
+                yield chunk.choices[0].delta.content
 
     async def generate_chat_title(self, user_input):
         """
@@ -106,29 +99,26 @@ Ejemplos:
 
 Título:"""
         
-        model = genai.GenerativeModel(
-            model_name=self.model,
-            system_instruction=instructions
-        )
-        
         # Generar título (sin streaming)
-        response = await model.generate_content_async(
-            contents=user_message,
-            generation_config=genai.types.GenerationConfig(
-                temperature=0.3,  # Más determinista para títulos consistentes
-                max_output_tokens=50,  # Títulos cortos
-                top_p=0.9,
-                top_k=20,
-            )
+        response = openai_client.chat.completions.create(
+            model=self.model,
+            messages=[
+                {"role": "system", "content": instructions},
+                {"role": "user", "content": user_message}
+            ],
+            temperature=0.3,  # Más determinista para títulos consistentes
+            max_tokens=50  # Títulos cortos
         )
         
-        # Actualizar tokens si están disponibles
-        if hasattr(response, 'usage_metadata') and response.usage_metadata:
-            self.prompt_tokens += response.usage_metadata.prompt_token_count
-            self.completion_tokens += response.usage_metadata.candidates_token_count
+        # Actualizar contadores de tokens
+        if hasattr(response, 'usage') and response.usage:
+            self.prompt_tokens += response.usage.prompt_tokens
+            self.completion_tokens += response.usage.completion_tokens
+        
+        # Obtener el texto de la respuesta
+        title = response.choices[0].message.content.strip()
         
         # Limpiar el título (remover comillas, puntos, etc.)
-        title = response.text.strip()
         title = title.strip('"\'.,;:')
         
         # Limitar longitud por seguridad

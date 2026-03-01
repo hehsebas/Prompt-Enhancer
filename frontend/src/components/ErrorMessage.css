@@ -10,7 +10,6 @@
   align-items: start;
   gap: var(--spacing-md);
   width: max-content;
-
 }
 
 .error-content {
@@ -43,18 +42,12 @@
 }
 
 .error-close {
-  background: none;
-  border: none;
-  color: var(--danger-color);
-  cursor: pointer;
-  padding: var(--spacing-xs);
-  border-radius: 4px;
-  transition: all 0.2s ease;
   flex-shrink: 0;
 }
 
 .error-close:hover {
   background: rgba(239, 68, 68, 0.1);
+  color: var(--danger-color);
 }
 
 /* Responsive */
@@ -90,4 +83,3 @@
     font-size: 0.85rem;
   }
 }
-

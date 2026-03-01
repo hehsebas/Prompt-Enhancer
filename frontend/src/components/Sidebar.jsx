@@ -1,5 +1,6 @@
+import '../index.css'
 import './Sidebar.css'
-import { LogIn, LogOut, User, Plus, Search, Trash2, MessageSquare, PanelLeft, AlertTriangle } from 'lucide-react'
+import { LogIn, LogOut, User, Plus, Search, Trash2, MessageSquare, PanelLeft, AlertTriangle, CreditCard, Palette, Settings, HelpCircle, ChevronRight } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useChat } from '../context/ChatContext'
@@ -84,6 +85,14 @@ function Sidebar({ isOpen, onClose, isCollapsed, onToggleCollapse }){
 
   const handleShowProfileOptions = () => {
     setShowProfileOptions(!showProfileOptions)
+  }
+
+  const handleCloseProfileOptions = () => {
+    setShowProfileOptions(false)
+  }
+
+  const openUpgradePage = () => {
+    navigate('/upgrade-plan')
   }
 
   return (
@@ -180,7 +189,7 @@ function Sidebar({ isOpen, onClose, isCollapsed, onToggleCollapse }){
         {isAuthenticated ? (
           <button className="sidebar-footer" onClick={handleShowProfileOptions}>
             <div className="user-info">
-              <div className="user-avatar">
+              <div className="user-avatar avatar avatar-sm">
                 <User size={20} />
               </div>
               <div className="user-details">
@@ -190,9 +199,6 @@ function Sidebar({ isOpen, onClose, isCollapsed, onToggleCollapse }){
                 </span>
               </div>
             </div>
-            <button onClick={handleLogout} className="logout-button" title="Cerrar sesión">
-              <LogOut size={18} />
-            </button>
           </button>
         ) : (
           <Link to="/login" className="sidebar-footer login-link" title="Iniciar sesión">
@@ -202,8 +208,8 @@ function Sidebar({ isOpen, onClose, isCollapsed, onToggleCollapse }){
         )}
       </aside>
       {showDeleteModal && (
-        <div className="delete-modal-overlay" onClick={handleCancelDelete}>
-          <div className="delete-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="delete-modal-overlay modal-overlay" onClick={handleCancelDelete}>
+          <div className="delete-modal modal" onClick={(e) => e.stopPropagation()}>
             <div className="delete-modal-icon">
               <AlertTriangle size={48} />
             </div>
@@ -214,13 +220,13 @@ function Sidebar({ isOpen, onClose, isCollapsed, onToggleCollapse }){
             <div className="delete-modal-actions">
               <button 
                 onClick={handleCancelDelete} 
-                className="btn-cancel"
+                className="btn-cancel btn btn-secondary"
               >
                 Cancelar
               </button>
               <button 
                 onClick={handleConfirmDelete} 
-                className="btn-confirm-delete"
+                className="btn-confirm-delete btn btn-danger"
               >
                 Eliminar
               </button>
@@ -230,11 +236,59 @@ function Sidebar({ isOpen, onClose, isCollapsed, onToggleCollapse }){
       )}
       {showProfileOptions && (
         <div className="profile-options-overlay" onClick={handleCloseProfileOptions}>
-          <div className="profile-options" onClick={(e) => e.stopPropagation()}>
-            <h3>Opciones de perfil</h3>
-            <button onClick={handleLogout} className="logout-button" title="Cerrar sesión">
-              <LogOut size={18} />
-            </button>
+          <div className="profile-options-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="profile-modal-header">
+              <div className="profile-modal-user">
+                <div className="profile-modal-avatar avatar avatar-lg">
+                  <User size={20} />
+                </div>
+                <div className="profile-modal-info">
+                  <span className="profile-modal-name">{user?.username || 'Usuario'}</span>
+                  <span className="profile-modal-email">@{user?.username?.toLowerCase() || 'usuario'}</span>
+                </div>
+              </div>
+            </div>
+            <div className="profile-modal-divider"></div>
+            <div className="profile-modal-options">
+              <button className="profile-option-item" onClick={(openUpgradePage)}>
+                <div className="profile-option-icon">
+                  <CreditCard size={16} />
+                </div>
+                <span className="profile-option-text">Upgrade plan</span>
+                <ChevronRight size={16} className="profile-option-arrow" />
+              </button>
+              <button className="profile-option-item" onClick={() => {}}>
+                <div className="profile-option-icon">
+                  <Palette size={16} />
+                </div>
+                <span className="profile-option-text">Personalization</span>
+                <ChevronRight size={16} className="profile-option-arrow" />
+              </button>
+              <button className="profile-option-item" onClick={() => {}}>
+                <div className="profile-option-icon">
+                  <Settings size={16} />
+                </div>
+                <span className="profile-option-text">Settings</span>
+                <ChevronRight size={16} className="profile-option-arrow" />
+              </button>
+              <button className="profile-option-item" onClick={() => {}}>
+                <div className="profile-option-icon">
+                  <HelpCircle size={16} />
+                </div>
+                <span className="profile-option-text">Help</span>
+                <ChevronRight size={16} className="profile-option-arrow" />
+              </button>
+            </div>
+            <div className="profile-modal-divider"></div>
+            <div className="profile-modal-footer">
+              <button className="profile-option-item profile-option-logout" onClick={handleLogout}>
+                <div className="profile-option-icon">
+                  <LogOut size={16} />
+                </div>
+                <span className="profile-option-text">Log out</span>
+                <ChevronRight size={16} className="profile-option-arrow" />
+              </button>
+            </div>
           </div>
         </div>
       )}

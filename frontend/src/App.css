@@ -1,6 +1,6 @@
 .app {
   display: grid;
-  grid-template-columns:20% 1fr;
+  grid-template-columns: 20% 1fr;
   height: 100vh;
   width: 100%;
 }
@@ -117,12 +117,6 @@
   background: var(--bg-primary-dark);
   transform: translateY(-2px);
   box-shadow: var(--shadow-lg);
-}
-
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  width: 100%; 
 }
 
 /* Banner de login */

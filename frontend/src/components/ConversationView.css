@@ -35,12 +35,6 @@
   width: 100%;
 }
 
-.empty-icon {
-  opacity: 0.3;
-  margin-bottom: var(--spacing-lg);
-  color: var(--bg-success-700);
-}
-
 .empty-content h2 {
   font-size: var(--text-md);
   color: var(--text-primary);
@@ -260,35 +254,14 @@
 
 .conversation-textarea {
   flex: 1;
-  padding: var(--spacing-md);
-  border: 1px solid var(--border-color);
-  border-radius: var(--border-radius-lg);
-  background: var(--bg-secondary);
-  color: var(--text-primary);
-  font-size: var(--text-sm);
-  font-family: var(--font-sans);
-  resize: none;
-  transition: all 0.2s ease;
-  min-height: 60px;
+  width: 100%;
   max-height: 200px;
   overflow-y: auto;
-  width: 100%;
 }
 
 .conversation-textarea:focus,
 .conversation-textarea.has-content {
   overflow-y: auto;
-}
-
-
-.conversation-textarea:focus {
-  outline: none;
-  border-color: var(--bg-success-700);
-}
-
-.conversation-textarea:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
 }
 .alert-link {
   color: var(--text-primary);
@@ -322,7 +295,11 @@
   padding: var(--spacing-sm);
   border-radius: var(--border-radius-md);
   transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
+
 .conversation-action-button:hover {
   background: var(--bg-gray-100);
   color: var(--text-primary);
@@ -353,7 +330,6 @@
 .send-button:hover:not(:disabled) {
   background: var(--bg-success-700);
   transform: scale(1.05);
-  transition: all 0.2s ease-in-out;
 }
 
 .send-button:disabled {
@@ -363,15 +339,6 @@
 
 .send-button .spinner {
   animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
 }
 /* Responsive */
 @media (max-width: 1024px) {

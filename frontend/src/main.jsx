@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import { ChatProvider } from './context/ChatContext'
 import PublicRoutes from './routes/public.jsx'
+import PrivateRoutes from './routes/private.jsx'
 import './index.css'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
@@ -12,6 +13,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
       <AuthProvider>
         <ChatProvider>
           <PublicRoutes />
+          <PrivateRoutes />
         </ChatProvider>
       </AuthProvider>
     </BrowserRouter>
