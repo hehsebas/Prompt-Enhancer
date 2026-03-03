@@ -14,7 +14,7 @@
 }
 
 .sidebar.sidebar-collapsed {
-  padding: var(--spacing-sm);
+  padding: var(--spacing-lg);
   justify-content: space-between;
 }
 
@@ -134,6 +134,7 @@
   padding: var(--spacing-sm);
   display: flex;
   align-items: center;
+  background: none; 
   gap: var(--spacing-md);
 }
 
@@ -164,6 +165,7 @@
   display: flex;
   align-items: center;
   gap: var(--spacing-md);
+  background: none;
 }
 
 .btn-search:hover {
@@ -224,8 +226,7 @@
 }
 
 .chat-item.active {
-  background-color: var(--bg-primary-light);
-  border-color: var(--bg-primary);
+  background-color: var(--bg-gray-100);
 }
 
 .chat-info {
@@ -652,7 +653,11 @@
 .profile-options-modal {
   background: var(--bg-primary);
   border-radius: var(--border-radius-lg);
-  width: 280px;
+  width: max-content;
+  padding-left: var(--spacing-md);
+  padding-right: var(--spacing-md);
+  padding-top: var(--spacing-sm);
+  padding-bottom: var(--spacing-sm);
   box-shadow: var(--shadow-lg);
   animation: slideUpModal 0.2s ease;
   border: 1px solid var(--border-color);

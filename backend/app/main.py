@@ -322,11 +322,13 @@ async def create_conversation_stream(
     """
     Crear o continuar una conversación con streaming.
     Mejora el prompt del usuario aplicando principios de ingeniería de prompts.
+    Mantiene el contexto de la conversación para mejoras iterativas.
     Soporta modo invitado (sin user_id) - no guarda en DB.
     """
     try:
         chat_id = None
         user_message_id = None
+        conversation_history = []
         
         # Solo crear/usar chat si hay usuario autenticado
         if user_id:
@@ -339,6 +341,19 @@ async def create_conversation_stream(
                 chat_id = chat.id
             else:
                 chat_id = request.chat_id
+                
+                # Recuperar historial de mensajes del chat para mantener contexto
+                try:
+                    messages = await chat_service.get_messages(str(chat_id), user_id)
+                    # Convertir mensajes a formato de OpenAI
+                    conversation_history = [
+                        {"role": msg.role, "content": msg.content}
+                        for msg in messages
+                    ]
+                    print(f"[INFO] Recuperados {len(conversation_history)} mensajes del chat {chat_id}")
+                except Exception as e:
+                    print(f"[ERROR] Error al recuperar historial: {e}")
+                    conversation_history = []
             
             # Guardar mensaje del usuario
             user_message = await chat_service.create_message(
@@ -360,6 +375,18 @@ async def create_conversation_stream(
                 start_time = time.time()
                 enhancer = PromptEnhancer(model=request.model)
                 
+                # DEBUG: Imprimir historial
+                print(f"\n{'='*60}")
+                print(f"[DEBUG] Chat ID: {chat_id}")
+                print(f"[DEBUG] Mensajes en historial: {len(conversation_history)}")
+                if conversation_history:
+                    print(f"[DEBUG] Historial:")
+                    for i, msg in enumerate(conversation_history):
+                        content_preview = msg['content'][:80] + "..." if len(msg['content']) > 80 else msg['content']
+                        print(f"  [{i}] {msg['role']}: {content_preview}")
+                print(f"[DEBUG] Mensaje actual: {request.user_message[:80]}...")
+                print(f"{'='*60}\n")
+                
                 # Enviar información del chat y mensaje del usuario
                 yield f"data: {json.dumps({'type': 'chat_info', 'chat_id': str(chat_id) if chat_id else None, 'user_message_id': str(user_message_id)})}\n\n"
                 
@@ -367,15 +394,15 @@ async def create_conversation_stream(
                 yield f"data: {json.dumps({'type': 'start', 'message': 'Mejorando tu prompt...'})}\n\n"
                 
                 # Obtener el prompt mejorado con streaming
+                # Pasar el mensaje actual Y el historial
                 full_response = ""
-                async for chunk in enhancer.enhance_prompt_stream(request.user_message):
+                async for chunk in enhancer.enhance_prompt_stream(request.user_message, conversation_history):
                     full_response += chunk
                     yield f"data: {json.dumps({'type': 'chunk', 'content': chunk})}\n\n"
                 
                 elapsed_time = time.time() - start_time
                 
                 # Calcular costos aproximados para OpenAI
-                # Precios aproximados por 1K tokens (varían según el modelo)
                 cost_per_1k_input = {"gpt-4o-mini": 0.00015, "gpt-4o": 0.0025, "gpt-4-turbo": 0.01}
                 cost_per_1k_output = {"gpt-4o-mini": 0.0006, "gpt-4o": 0.01, "gpt-4-turbo": 0.03}
                 
@@ -422,6 +449,9 @@ async def create_conversation_stream(
                 yield f"data: {json.dumps(metadata)}\n\n"
                 
             except Exception as e:
+                print(f"[ERROR] Error en generate(): {e}")
+                import traceback
+                traceback.print_exc()
                 error_data = {
                     "type": "error",
                     "message": str(e)
@@ -439,6 +469,9 @@ async def create_conversation_stream(
         )
         
     except Exception as e:
+        print(f"[ERROR] Error en create_conversation_stream: {e}")
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
 

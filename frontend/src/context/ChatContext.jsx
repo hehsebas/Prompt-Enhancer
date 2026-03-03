@@ -105,7 +105,7 @@ export function ChatProvider({ children }) {
     }
   }
 
-  const sendMessage = async (content, parentMessageId = null, model = 'gemini-2.5-flash') => {
+  const sendMessage = async (content, parentMessageId = null, model = 'gpt-4o-mini') => {
     try {
       setIsLoading(true)
       setError(null)
@@ -173,6 +173,23 @@ export function ChatProvider({ children }) {
         },
         // onMetadata - finalizar mensaje
         async (metadata) => {
+          // IMPORTANTE: Si es un chat nuevo, actualizar currentChat con el chat_id recibido
+          if (isNewChat && metadata.chat_id && !currentChat) {
+            try {
+              const chat = await chatAPI.getChat(metadata.chat_id)
+              setCurrentChat(chat)
+              console.log('[INFO] Chat actualizado con ID:', metadata.chat_id)
+            } catch (err) {
+              console.error('Error al obtener chat recién creado:', err)
+              // Si falla, al menos crear un objeto temporal con el ID
+              setCurrentChat({
+                id: metadata.chat_id,
+                title: 'Nuevo Chat',
+                created_at: new Date().toISOString()
+              })
+            }
+          }
+          
           setMessages(prev => {
             const newMessages = [...prev]
             const lastIndex = newMessages.length - 1
@@ -208,13 +225,11 @@ export function ChatProvider({ children }) {
           })
           
           // Si es un chat nuevo y el título es "Nuevo Chat", actualizarlo con IA
-          if (isNewChat && chatId && isAuthenticated && currentChat) {
-            if (currentChat.title === 'Nuevo Chat') {
-              // Generar título con IA de forma asíncrona (no bloqueante)
-              generateAndUpdateTitle(chatId, content, model).catch(err => {
-                console.error('Error al actualizar título:', err)
-              })
-            }
+          if (isNewChat && metadata.chat_id && isAuthenticated) {
+            // Generar título con IA de forma asíncrona (no bloqueante)
+            generateAndUpdateTitle(metadata.chat_id, content, model).catch(err => {
+              console.error('Error al actualizar título:', err)
+            })
           }
           
           if (!isAuthenticated) {

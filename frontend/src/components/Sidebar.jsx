@@ -131,7 +131,9 @@ function Sidebar({ isOpen, onClose, isCollapsed, onToggleCollapse }){
 
 
             <div className="sidebar-chats">
-              <h4 className="sidebar-text">Tus chats</h4>
+              <div className="mb-sm">
+                <h4 className="sidebar-text">Tus chats</h4>
+              </div>
               {chats.length === 0 ? (
                 <div className="empty-state">
                   <MessageSquare size={20} className="empty-icon" />
@@ -154,9 +156,6 @@ function Sidebar({ isOpen, onClose, isCollapsed, onToggleCollapse }){
                         <h4 className="chat-title">{chat.title}</h4>
                         <div className="chat-meta">
                           <span className="chat-date">{formatDate(chat.updated_at)}</span>
-                          {chat.message_count > 0 && (
-                            <span className="chat-count">{chat.message_count} msgs</span>
-                          )}
                         </div>
                       </div>
                       <div className="chat-actions">
@@ -237,51 +236,41 @@ function Sidebar({ isOpen, onClose, isCollapsed, onToggleCollapse }){
       {showProfileOptions && (
         <div className="profile-options-overlay" onClick={handleCloseProfileOptions}>
           <div className="profile-options-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="profile-modal-header">
-              <div className="profile-modal-user">
-                <div className="profile-modal-avatar avatar avatar-lg">
-                  <User size={20} />
-                </div>
-                <div className="profile-modal-info">
-                  <span className="profile-modal-name">{user?.username || 'Usuario'}</span>
-                  <span className="profile-modal-email">@{user?.username?.toLowerCase() || 'usuario'}</span>
-                </div>
+            <div className="profile-modal-user">
+              <div className="profile-modal-avatar avatar avatar-md">
+                <User size={20} />
               </div>
-            </div>
+              <div className="profile-modal-info">
+                <span className="profile-modal-name">{user?.username || 'Usuario'}</span>
+              </div>
+            </div>     
             <div className="profile-modal-divider"></div>
             <div className="profile-modal-options">
               <button className="profile-option-item" onClick={(openUpgradePage)}>
                 <div className="profile-option-icon">
                   <CreditCard size={16} />
                 </div>
-                <span className="profile-option-text">Upgrade plan</span>
-                <ChevronRight size={16} className="profile-option-arrow" />
-              </button>
-              <button className="profile-option-item" onClick={() => {}}>
-                <div className="profile-option-icon">
-                  <Palette size={16} />
-                </div>
-                <span className="profile-option-text">Personalization</span>
+                <span className="profile-option-text">Mejorar plan</span>
                 <ChevronRight size={16} className="profile-option-arrow" />
               </button>
               <button className="profile-option-item" onClick={() => {}}>
                 <div className="profile-option-icon">
                   <Settings size={16} />
                 </div>
-                <span className="profile-option-text">Settings</span>
+                <span className="profile-option-text">Configuraciones</span>
                 <ChevronRight size={16} className="profile-option-arrow" />
               </button>
               <button className="profile-option-item" onClick={() => {}}>
                 <div className="profile-option-icon">
                   <HelpCircle size={16} />
                 </div>
-                <span className="profile-option-text">Help</span>
+                <span className="profile-option-text">Ayuda</span>
                 <ChevronRight size={16} className="profile-option-arrow" />
               </button>
             </div>
             <div className="profile-modal-divider"></div>
             <div className="profile-modal-footer">
-              <button className="profile-option-item profile-option-logout" onClick={handleLogout}>
+              <button className="profile-option-item profile-option-logout" onClick={() => {handleLogout(); handleCloseProfileOptions()}}>
                 <div className="profile-option-icon">
                   <LogOut size={16} />
                 </div>

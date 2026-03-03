@@ -168,7 +168,7 @@ export const sendMessageStream = async (chatId, content, parentMessageId, model,
         chat_id: chatId || null,
         user_message: content,
         parent_message_id: parentMessageId || null,
-        model: model || 'gemini-2.5-flash',
+        model: model || 'gpt-4o-mini',
         include_explanation: false
       })
     })
