@@ -2,7 +2,7 @@ import '../index.css'
 import './Log-in.css'
 import Sidebar from './Sidebar'
 import { Link, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Mail, Lock, AlertCircle } from 'lucide-react'
+import { ArrowLeft, AlertCircle } from 'lucide-react'
 import { useState } from 'react'
 import { logIn } from '../services/auth'
 import { useAuth } from '../context/AuthContext'
@@ -164,7 +164,7 @@ function LogIn() {
 
                 <button 
                     type="button" 
-                    className="google-button" 
+                    className="btn-secondary" 
                     onClick={handleGoogleLogin}
                     disabled={isLoading}
                 >

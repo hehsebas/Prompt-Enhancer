@@ -1,7 +1,7 @@
 .error-container {
-  background: rgba(239, 68, 68, 0.1);
-  border: 2px solid var(--danger-color);
-  border-radius: var(--border-radius);
+  background: var(--error-50);
+  border: 2px solid var(--error-700);
+  border-radius: var(--border-radius-md);
   padding: var(--spacing-lg);
   margin-top: var(--spacing-xl);
   margin-bottom: var(--spacing-xl);
@@ -19,7 +19,7 @@
 }
 
 .error-icon {
-  color: var(--danger-color);
+  color: var(--error-700);
   flex-shrink: 0;
 }
 
@@ -28,14 +28,14 @@
 }
 
 .error-text h4 {
-  color: var(--danger-color);
+  color: var(--error-700);
   font-size: 1rem;
   font-weight: 600;
   margin: 0 0 var(--spacing-xs) 0;
 }
 
 .error-text p {
-  color: var(--text-primary);
+  color: var(--gray-900);
   font-size: 0.95rem;
   margin: 0;
   line-height: 1.5;
@@ -46,8 +46,8 @@
 }
 
 .error-close:hover {
-  background: rgba(239, 68, 68, 0.1);
-  color: var(--danger-color);
+  background: var(--error-100);
+  color: var(--error-700);
 }
 
 /* Responsive */
